@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Service, Zone, PostalCode, ServiceUnit } from '../types';
+import { Service, Zone, PostalCode, ServiceUnit, ServiceCategory, Pais, Moneda } from '../types';
 import { EditableTable, Column } from './EditableTable';
 
 interface AdminPageProps {
@@ -22,41 +22,29 @@ export const AdminPage: React.FC<AdminPageProps> = ({ services, setServices, zon
         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
     }`;
   
-  // --- Services Table Logic ---
   const serviceColumns: Column<Service>[] = [
     { key: 'servicio_id', header: 'ID Servicio', editable: true, type: 'text' },
+    { key: 'pais', header: 'País', editable: true, type: 'select', options: [{value: 'AR', label: 'AR'}, {value: 'BO', label: 'BO'}] },
+    { key: 'moneda', header: 'Moneda', editable: true, type: 'select', options: [{value: 'ARS', label: 'ARS'}, {value: 'Bs', label: 'Bs'}] },
     { key: 'servicio', header: 'Servicio', editable: true, type: 'text' },
     { key: 'subservicio', header: 'Sub-Servicio', editable: true, type: 'text' },
-    { key: 'unidad', header: 'Unidad', editable: true, type: 'select', options: [{value: 'pieza', label: 'Pieza'}, {value: 'm2', label: 'm2'}] },
-    { key: 'base_unit_price', header: 'Precio Base (ARS)', editable: true, type: 'number' },
-    { key: 'm2_rate', header: 'Tasa m² (ARS)', editable: true, type: 'number' },
-    { key: 'min_charge', header: 'Mínimo m² (ARS)', editable: true, type: 'number' },
+    { key: 'categoria', header: 'Categoría', editable: true, type: 'select', options: Object.values(ServiceCategory).map(c => ({value: c, label: c})) },
+    { key: 'unidad', header: 'Unidad', editable: true, type: 'select', options: Object.values(ServiceUnit).map(u => ({value: u, label: u})) },
+    { key: 'precio_base', header: 'Precio/Dif.', editable: true, type: 'number' },
+    { key: 'tasa_m2', header: 'Tasa m²', editable: true, type: 'number' },
+    { key: 'min_cargo', header: 'Mínimo m²', editable: true, type: 'number' },
     { key: 'active', header: 'Activo', editable: true, type: 'checkbox' },
   ];
 
   const handleSaveService = (row: Service) => {
-    // Validation
     if (!row.servicio_id || !row.servicio || !row.subservicio) {
         alert('ID, Servicio y Sub-Servicio no pueden estar vacíos.');
         return false;
     }
-    if (row.unidad === ServiceUnit.PIEZA && (!row.base_unit_price || row.base_unit_price < 0)) {
-        alert('Servicios por "pieza" deben tener un Precio Base mayor o igual a 0.');
+    if (row.id === -1 && services.some(s => s.servicio_id === row.servicio_id)) {
+        alert(`El ID de servicio "${row.servicio_id}" ya existe.`);
         return false;
     }
-    if (row.unidad === ServiceUnit.M2 && (!row.m2_rate || row.m2_rate < 0 || !row.min_charge || row.min_charge < 0)) {
-        alert('Servicios por "m2" deben tener Tasa m² y Mínimo m² mayor o igual a 0.');
-        return false;
-    }
-    
-    // Check for uniqueness on new rows
-    if (row.id === -1) { // -1 is the temporary ID for new rows
-        if(services.some(s => s.servicio_id === row.servicio_id)) {
-            alert(`El ID de servicio "${row.servicio_id}" ya existe.`);
-            return false;
-        }
-    }
-    
     setServices(prev => {
         if(row.id === -1){
             const newId = Math.max(...prev.map(s => s.id), 0) + 1;
@@ -69,35 +57,37 @@ export const AdminPage: React.FC<AdminPageProps> = ({ services, setServices, zon
 
   const newServiceTemplate: Omit<Service, 'id'> = {
     servicio_id: '',
+    pais: 'AR',
+    moneda: 'ARS',
     servicio: '',
     subservicio: '',
+    categoria: ServiceCategory.OTROS,
     unidad: ServiceUnit.PIEZA,
-    base_unit_price: 0,
-    m2_rate: 0,
-    min_charge: 0,
+    precio_base: 0,
+    tasa_m2: 0,
+    min_cargo: 0,
     active: true,
   };
 
-  // --- Zones Table Logic ---
   const zoneColumns: Column<Zone>[] = [
     { key: 'zone_id', header: 'ID Zona', editable: true, type: 'text' },
+    { key: 'pais', header: 'País', editable: true, type: 'select', options: [{value: 'AR', label: 'AR'}, {value: 'BO', label: 'BO'}] },
     { key: 'provincia', header: 'Provincia', editable: true, type: 'text' },
     { key: 'ciudad', header: 'Ciudad', editable: true, type: 'text' },
     { 
-      key: 'zone_discount_pct', 
+      key: 'general_discount_pct', 
       header: 'Descuento (%)', 
       editable: true, 
       type: 'number', 
-      render: (row) => `${(row.zone_discount_pct * 100).toFixed(0)}%`,
-      getEditValue: (row) => row.zone_discount_pct * 100,
+      render: (row) => `${(row.general_discount_pct * 100).toFixed(0)}%`,
+      getEditValue: (row) => row.general_discount_pct * 100,
     },
     { key: 'active', header: 'Activo', editable: true, type: 'checkbox' },
     { key: 'operary_name', header: 'Operario', editable: true, type: 'text' },
   ];
 
   const handleSaveZone = (row: Zone) => {
-    // Validation for discount is now on the percentage value (e.g., 15 for 15%)
-    const discountValue = row.zone_discount_pct as unknown as number;
+    const discountValue = row.general_discount_pct as unknown as number;
     if (discountValue < 0 || discountValue > 30) {
         alert('El descuento de zona debe estar entre 0 y 30%.');
         return false;
@@ -106,18 +96,12 @@ export const AdminPage: React.FC<AdminPageProps> = ({ services, setServices, zon
         alert('ID Zona, Provincia y Ciudad son obligatorios.');
         return false;
     }
-
-     if (row.id === -1) { 
-        if(zones.some(z => z.zone_id === row.zone_id)) {
-            alert(`El ID de zona "${row.zone_id}" ya existe.`);
-            return false;
-        }
+     if (row.id === -1 && zones.some(z => z.zone_id === row.zone_id)) {
+        alert(`El ID de zona "${row.zone_id}" ya existe.`);
+        return false;
     }
-
     setZones(prev => {
-        // Convert percentage from input (e.g., 15) back to decimal (0.15) for storage
-        const updatedRow = { ...row, zone_discount_pct: discountValue / 100 };
-
+        const updatedRow = { ...row, general_discount_pct: discountValue / 100 };
         if(row.id === -1){
             const newId = Math.max(...prev.map(z => z.id), 0) + 1;
             return [...prev, {...updatedRow, id: newId}];
@@ -129,38 +113,27 @@ export const AdminPage: React.FC<AdminPageProps> = ({ services, setServices, zon
 
   const newZoneTemplate: Omit<Zone, 'id'> = {
     zone_id: '',
+    pais: 'AR',
     provincia: '',
     ciudad: '',
-    zone_discount_pct: 0,
+    general_discount_pct: 0,
     active: true,
     operary_name: '',
   };
 
-  // --- Postal Codes Table Logic ---
-  const zoneOptions = zones.map(z => ({ value: z.zone_id, label: z.zone_id }));
-
+  const zoneOptions = zones.map(z => ({ value: z.zone_id, label: `${z.zone_id} (${z.pais})` }));
   const postalCodeColumns: Column<PostalCode>[] = [
+    { key: 'pais', header: 'País', editable: true, type: 'select', options: [{value: 'AR', label: 'AR'}, {value: 'BO', label: 'BO'}] },
     { key: 'cp_from', header: 'CP Desde', editable: true, type: 'text' },
     { key: 'cp_to', header: 'CP Hasta', editable: true, type: 'text' },
     { key: 'zone_id', header: 'ID Zona', editable: true, type: 'select', options: zoneOptions },
   ];
 
   const handleSavePostalCode = (row: PostalCode) => {
-    const from = parseInt(row.cp_from, 10);
-    const to = parseInt(row.cp_to, 10);
-    if (isNaN(from) || isNaN(to) || from <= 0 || to <= 0) {
-        alert('Los códigos postales deben ser números positivos.');
+    if (!row.cp_from || !row.cp_to || !row.zone_id) {
+        alert('Todos los campos son obligatorios.');
         return false;
     }
-    if (from > to) {
-        alert('El código postal "Desde" no puede ser mayor que "Hasta".');
-        return false;
-    }
-    if (!row.zone_id) {
-        alert('Debe seleccionar un ID de Zona.');
-        return false;
-    }
-
     setPostalCodes(prev => {
         if(row.id === -1){
             const newId = Math.max(...prev.map(p => p.id), 0) + 1;
@@ -172,6 +145,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ services, setServices, zon
   };
 
   const newPostalCodeTemplate: Omit<PostalCode, 'id'> = {
+    pais: 'AR',
     cp_from: '',
     cp_to: '',
     zone_id: '',

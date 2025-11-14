@@ -1,9 +1,13 @@
+export type Pais = 'AR' | 'BO';
+export type Moneda = 'ARS' | 'Bs';
+
 export interface Zone {
   id: number;
   zone_id: string;
+  pais: Pais;
   provincia: string;
   ciudad: string;
-  zone_discount_pct: number;
+  general_discount_pct: number;
   active: boolean;
   operary_name?: string;
   operary_id?: string;
@@ -12,6 +16,7 @@ export interface Zone {
 
 export interface PostalCode {
   id: number;
+  pais: Pais;
   cp_from: string;
   cp_to: string;
   zone_id: string;
@@ -20,53 +25,78 @@ export interface PostalCode {
 export enum ServiceUnit {
   PIEZA = 'pieza',
   M2 = 'm2',
+  UNIDAD = 'unidad', // For vehicle plans
+}
+
+export enum ServiceCategory {
+    VEHICULOS = 'Vehículos',
+    VEHICULOS_AISLADOS = 'Vehículos Aislados',
+    ESTETICA_VEHICULAR = 'Estética Vehicular',
+    COLCHONES = 'Colchones',
+    TAPIZADOS = 'Tapizados', // Replaces SILLONES
+    SILLAS = 'Sillas',
+    ALFOMBRAS = 'Alfombras',
+    BEBE = 'Bebé', // Replaces ART_BEBE
+    CORTINAS = 'Cortinas',
+    OTROS = 'Otros',
 }
 
 export interface Service {
   id: number;
-  servicio_id: string;
-  servicio: string;
-  subservicio: string;
+  servicio_id: string; // Unique ID, e.g., 'veh_std_basico_ar'
+  pais: Pais;
+  moneda: Moneda;
+  servicio: string; // Main group, e.g., 'Auto Standard'
+  subservicio: string; // Specific item, e.g., 'Plan Básico'
+  categoria: ServiceCategory;
   unidad: ServiceUnit;
-  base_unit_price: number;
-  m2_rate: number;
-  min_charge: number;
+  precio_base: number;
+  diferencial_id?: string; // Links to a diferencial entry, e.g., 'dif_std_ar'
+  notas?: string;
   active: boolean;
+  // Fields for m2-based services
+  tasa_m2?: number;
+  min_cargo?: number;
 }
 
-export interface Modifier {
-  tipo: string;
-  clave: string;
-  label: string;
-  pct: number;
+export interface QuoteItem {
+    key: number;
+    serviceId: string;
+    quantity: number;
 }
 
 export interface QuoteInput {
+  pais: Pais;
   cp: string;
   provincia: string;
   ciudad: string;
-  serviceId: string;
-  quantity: number;
-  flags: { [key: string]: boolean };
+  items: QuoteItem[];
+  paymentMethod: 'cash_transfer' | 'other';
 }
 
-export interface AppliedModifier {
-    clave: string;
-    label: string;
+export interface AppliedDiscount {
+    type: 'PROMO' | 'VALUE' | 'ZONE_GENERAL' | 'ZONE_CONDITIONAL';
+    description: string;
+    amount: number;
     pct: number;
 }
 
+export interface QuoteItemResult {
+    service: Service;
+    quantity: number;
+    basePrice: number; // The price for this line item before any global discounts
+}
+
 export interface QuoteResultDetail {
-  basePrice: number;
-  workloadPrice: number;
-  appliedModifiers: AppliedModifier[];
-  modifierFactor: number;
-  zoneId: string;
-  zoneDiscountPct: number;
-  zoneDiscountAmount: number;
+  workloadSubtotal: number;
+  appliedDiscount: AppliedDiscount | null;
+  priceAfterDiscount: number;
+  minimumChargeApplied: number; // Amount added to meet minimum
   finalPrice: number;
-  formula: string;
+  zoneId: string;
+  moneda: Moneda;
   operaryName?: string;
+  items: QuoteItemResult[];
 }
 
 export interface QuoteResult {

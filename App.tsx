@@ -4,7 +4,7 @@ import { InputForm } from './components/InputForm';
 import { QuoteResult } from './components/QuoteResult';
 import { useQuoteCalculator } from './hooks/useQuoteCalculator';
 import { AdminPage } from './components/AdminPage';
-import { SERVICIOS, ZONAS, MODIFICADORES, POSTAL_CODES } from './data/mockData';
+import { SERVICIOS, ZONAS, POSTAL_CODES } from './data/mockData';
 import { Service, Zone, PostalCode } from './types';
 import useLocalStorageState from './hooks/useLocalStorageState';
 
@@ -13,9 +13,6 @@ function App() {
   const [view, setView] = useState<'calculator' | 'admin'>('calculator');
   
   // --- Persistent State Management ---
-  // The useLocalStorageState hook ensures that any changes to this data
-  // are automatically saved to the browser's localStorage and reloaded on page refresh.
-  // This is the core of the app's data persistence.
   const [servicesData, setServicesData] = useLocalStorageState<Service[]>('servicesData', SERVICIOS);
   const [zonesData, setZonesData] = useLocalStorageState<Zone[]>('zonesData', ZONAS);
   const [postalCodesData, setPostalCodesData] = useLocalStorageState<PostalCode[]>('postalCodesData', POSTAL_CODES);
@@ -32,7 +29,6 @@ function App() {
     reset,
   } = useQuoteCalculator({
     services: servicesData,
-    modifiers: MODIFICADORES,
     zones: zonesData,
     postalCodes: postalCodesData,
   });
@@ -56,9 +52,6 @@ function App() {
     alert('Cotización guardada (simulado).');
   };
 
-  // Handles resetting all data tables to their default values.
-  // It removes the keys from localStorage and then resets the state,
-  // which causes the hook to write the default values back to localStorage.
   const handleResetData = () => {
     if (window.confirm('¿Está seguro de que desea restablecer TODOS los datos a sus valores originales? Esta acción no se puede deshacer.')) {
         localStorage.removeItem('servicesData');
