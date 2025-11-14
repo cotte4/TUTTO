@@ -1,36 +1,76 @@
 import { Zone, PostalCode, Service, ServiceUnit, ServiceCategory } from '../types';
 
 export const ZONAS: Zone[] = [
-  // Argentina - SIN DESCUENTO GENERAL
+  // --- ARGENTINA ---
+  // Zonas SIN DESCUENTO
   { id: 1, zone_id: 'CABA', pais: 'AR', provincia: 'Buenos Aires', ciudad: 'CABA', general_discount_pct: 0, active: true },
-  { id: 2, zone_id: 'ZONA_SUR', pais: 'AR', provincia: 'Buenos Aires', ciudad: 'Zona Sur', general_discount_pct: 0, active: true },
-  { id: 3, zone_id: 'ZONA_NORTE_Y_OESTE', pais: 'AR', provincia: 'Buenos Aires', ciudad: 'Zona Norte y Oeste', general_discount_pct: 0, active: true },
-  { id: 48, zone_id: 'NEUQUEN', pais: 'AR', provincia: 'Neuquén', ciudad: 'Neuquén', general_discount_pct: 0, active: true },
-  { id: 52, zone_id: 'BARILOCHE', pais: 'AR', provincia: 'Río Negro', ciudad: 'San Carlos de Bariloche', general_discount_pct: 0, active: true },
+  { id: 2, zone_id: 'BUENOS_AIRES_ZONA_SUR', pais: 'AR', provincia: 'Buenos Aires', ciudad: 'Buenos Aires zona sur', general_discount_pct: 0, active: true },
+  { id: 3, zone_id: 'BUENOS_AIRES_ZONA_NORTE', pais: 'AR', provincia: 'Buenos Aires', ciudad: 'Buenos Aires zona norte', general_discount_pct: 0, active: true },
+  { id: 4, zone_id: 'BUENOS_AIRES_ZONA_OESTE', pais: 'AR', provincia: 'Buenos Aires', ciudad: 'Buenos Aires zona oeste', general_discount_pct: 0, active: true },
+  { id: 5, zone_id: 'BARDA_DEL_MEDIO', pais: 'AR', provincia: 'Río Negro', ciudad: 'Barda del Medio', general_discount_pct: 0, active: true },
+  { id: 6, zone_id: 'RIO_NEGRO', pais: 'AR', provincia: 'Río Negro', ciudad: 'Río Negro', general_discount_pct: 0, active: true },
+  { id: 7, zone_id: 'RIO_GALLEGOS', pais: 'AR', provincia: 'Santa Cruz', ciudad: 'Río Gallegos', general_discount_pct: 0, active: true },
+  { id: 8, zone_id: 'ZARATE_Y_CAMPANA', pais: 'AR', provincia: 'Buenos Aires', ciudad: 'Zárate y Campana', general_discount_pct: 0, active: true },
+  { id: 9, zone_id: 'GENERAL_ROCA', pais: 'AR', provincia: 'Río Negro', ciudad: 'General Roca', general_discount_pct: 0, active: true },
+  { id: 10, zone_id: 'NEUQUEN', pais: 'AR', provincia: 'Neuquén', ciudad: 'Neuquén', general_discount_pct: 0, active: true },
+  { id: 11, zone_id: 'BARILOCHE', pais: 'AR', provincia: 'Río Negro', ciudad: 'Bariloche', general_discount_pct: 0, active: true },
+  { id: 12, zone_id: 'TANDIL', pais: 'AR', provincia: 'Buenos Aires', ciudad: 'Tandil', general_discount_pct: 0, active: true },
+  { id: 13, zone_id: 'PARTIDO_DE_LA_COSTA', pais: 'AR', provincia: 'Buenos Aires', ciudad: 'Partido de la Costa', general_discount_pct: 0, active: true },
+  { id: 14, zone_id: 'NECOCHEA_Y_QUEQUEN', pais: 'AR', provincia: 'Buenos Aires', ciudad: 'Necochea y Quequén', general_discount_pct: 0, active: true },
+  { id: 15, zone_id: 'VIEDMA_Y_CARMEN_DE_PATAGONES', pais: 'AR', provincia: 'Río Negro', ciudad: 'Viedma y Carmen de Patagones', general_discount_pct: 0, active: true },
+  { id: 16, zone_id: 'SAN_NICOLAS_DE_LOS_ARROYOS', pais: 'AR', provincia: 'Buenos Aires', ciudad: 'San Nicolás de los Arroyos', general_discount_pct: 0, active: true },
+  { id: 17, zone_id: 'EL_CALAFATE', pais: 'AR', provincia: 'Santa Cruz', ciudad: 'El Calafate', general_discount_pct: 0, active: true },
+  { id: 18, zone_id: 'COMODORO_RIVADAVIA', pais: 'AR', provincia: 'Chubut', ciudad: 'Comodoro Rivadavia', general_discount_pct: 0, active: true },
+  { id: 19, zone_id: 'PUERTO_MADRYN', pais: 'AR', provincia: 'Chubut', ciudad: 'Puerto Madryn', general_discount_pct: 0, active: true },
+  { id: 20, zone_id: 'LOBERIA', pais: 'AR', provincia: 'Buenos Aires', ciudad: 'Lobería', general_discount_pct: 0, active: true },
+  { id: 21, zone_id: 'VILLA_GESELL_Y_PINAMAR', pais: 'AR', provincia: 'Buenos Aires', ciudad: 'Villa Gesell y Pinamar', general_discount_pct: 0, active: true },
+  
+  // Zonas CON DESCUENTO GENERAL 10%
+  { id: 22, zone_id: 'MAR_DEL_PLATA', pais: 'AR', provincia: 'Buenos Aires', ciudad: 'Mar del Plata', general_discount_pct: 0.10, active: true },
+  { id: 23, zone_id: 'CORRIENTES', pais: 'AR', provincia: 'Corrientes', ciudad: 'Corrientes', general_discount_pct: 0.10, active: true },
+  { id: 24, zone_id: 'SALTA', pais: 'AR', provincia: 'Salta', ciudad: 'Salta', general_discount_pct: 0.10, active: true },
+  { id: 25, zone_id: 'MENDOZA', pais: 'AR', provincia: 'Mendoza', ciudad: 'Mendoza', general_discount_pct: 0.10, active: true },
+  { id: 26, zone_id: 'TUCUMAN', pais: 'AR', provincia: 'Tucumán', ciudad: 'Tucumán', general_discount_pct: 0.10, active: true },
+  { id: 27, zone_id: 'BAHIA_BLANCA', pais: 'AR', provincia: 'Buenos Aires', ciudad: 'Bahía Blanca', general_discount_pct: 0.10, active: true },
+  { id: 28, zone_id: 'LA_PLATA', pais: 'AR', provincia: 'Buenos Aires', ciudad: 'La Plata', general_discount_pct: 0.10, active: true },
+  { id: 29, zone_id: 'RESISTENCIA', pais: 'AR', provincia: 'Chaco', ciudad: 'Resistencia', general_discount_pct: 0.10, active: true },
+  { id: 30, zone_id: 'CORDOBA', pais: 'AR', provincia: 'Córdoba', ciudad: 'Córdoba', general_discount_pct: 0.10, active: true },
+  { id: 31, zone_id: 'RIO_CUARTO', pais: 'AR', provincia: 'Córdoba', ciudad: 'Río Cuarto', general_discount_pct: 0.10, active: true },
+  { id: 32, zone_id: 'PARANA', pais: 'AR', provincia: 'Entre Ríos', ciudad: 'Paraná', general_discount_pct: 0.10, active: true },
+  { id: 33, zone_id: 'SANTA_FE', pais: 'AR', provincia: 'Santa Fe', ciudad: 'Santa Fe', general_discount_pct: 0.10, active: true },
+  { id: 34, zone_id: 'POSADAS', pais: 'AR', provincia: 'Misiones', ciudad: 'Posadas', general_discount_pct: 0.10, active: true },
+  { id: 35, zone_id: 'SANTIAGO_DEL_ESTERO', pais: 'AR', provincia: 'Santiago del Estero', ciudad: 'Santiago del Estero', general_discount_pct: 0.10, active: true },
+  { id: 36, zone_id: 'TRELEW_Y_RAWSON', pais: 'AR', provincia: 'Chubut', ciudad: 'Trelew y Rawson', general_discount_pct: 0.10, active: true },
+  { id: 37, zone_id: 'SAN_JUAN', pais: 'AR', provincia: 'San Juan', ciudad: 'San Juan', general_discount_pct: 0.10, active: true },
+  { id: 38, zone_id: 'SAN_SALVADOR_DE_JUJUY', pais: 'AR', provincia: 'Jujuy', ciudad: 'San Salvador de Jujuy', general_discount_pct: 0.10, active: true },
+  { id: 39, zone_id: 'SAN_LUIS', pais: 'AR', provincia: 'San Luis', ciudad: 'San Luis', general_discount_pct: 0.10, active: true },
+  { id: 40, zone_id: 'FORMOSA', pais: 'AR', provincia: 'Formosa', ciudad: 'Formosa', general_discount_pct: 0.10, active: true },
+  { id: 41, zone_id: 'SAN_RAFAEL', pais: 'AR', provincia: 'Mendoza', ciudad: 'San Rafael', general_discount_pct: 0.10, active: true },
+  { id: 42, zone_id: 'LA_RIOJA', pais: 'AR', provincia: 'La Rioja', ciudad: 'La Rioja', general_discount_pct: 0.10, active: true },
+  { id: 43, zone_id: 'CARLOS_PAZ', pais: 'AR', provincia: 'Córdoba', ciudad: 'Carlos Paz', general_discount_pct: 0.10, active: true },
+  { id: 44, zone_id: 'VALLE_DE_PUNILLA', pais: 'AR', provincia: 'Córdoba', ciudad: 'Valle de Punilla', general_discount_pct: 0.10, active: true },
+  { id: 45, zone_id: 'CONCEPCION_DEL_URUGUAY', pais: 'AR', provincia: 'Entre Ríos', ciudad: 'Concepción del Uruguay', general_discount_pct: 0.10, active: true },
+  { id: 46, zone_id: 'SAN_FERNANDO_DEL_VALLE_DE_CATAMARCA', pais: 'AR', provincia: 'Catamarca', ciudad: 'San Fernando del Valle de Catamarca', general_discount_pct: 0.10, active: true },
+  { id: 47, zone_id: 'LAGUNA_LARGA_PILAR_RIO_SEGUNDO', pais: 'AR', provincia: 'Córdoba', ciudad: 'Laguna Larga, Pilar y Río Segundo', general_discount_pct: 0.10, active: true },
+  { id: 48, zone_id: 'URDINARRAIN_GUALEGUAY_GUALEGUAYCHU_ROSARIO_DEL_TALA', pais: 'AR', provincia: 'Entre Ríos', ciudad: 'Urdinarrain, Gualeguay, Gualeguaychú, Rosario del Talá', general_discount_pct: 0.10, active: true },
+  { id: 49, zone_id: 'BALCARCE', pais: 'AR', provincia: 'Buenos Aires', ciudad: 'Balcarce', general_discount_pct: 0.10, active: true },
+  { id: 50, zone_id: 'FUNES_Y_ROSARIO', pais: 'AR', provincia: 'Santa Fe', ciudad: 'Funes y Rosario', general_discount_pct: 0.10, active: true },
 
-  // Argentina - CON DESCUENTO GENERAL 10%
-  { id: 5, zone_id: 'MAR_DEL_PLATA', pais: 'AR', provincia: 'Buenos Aires', ciudad: 'Mar del Plata', general_discount_pct: 0.10, active: true, operary_name: 'Juan Perez' },
-  { id: 4, zone_id: 'LA_PLATA', pais: 'AR', provincia: 'Buenos Aires', ciudad: 'La Plata', general_discount_pct: 0.10, active: true },
-  { id: 44, zone_id: 'MENDOZA', pais: 'AR', provincia: 'Mendoza', ciudad: 'Mendoza', general_discount_pct: 0.10, active: true },
-  { id: 25, zone_id: 'CORDOBA_CAPITAL', pais: 'AR', provincia: 'Córdoba', ciudad: 'Córdoba Capital', general_discount_pct: 0.10, active: true },
-
-  // Bolivia - Zonas de ejemplo (asumiendo 10% de descuento)
-  { id: 101, zone_id: 'LA_PAZ', pais: 'BO', provincia: 'La Paz', ciudad: 'La Paz', general_discount_pct: 0.10, active: true },
-  { id: 102, zone_id: 'SANTA_CRUZ', pais: 'BO', provincia: 'Santa Cruz', ciudad: 'Santa Cruz de la Sierra', general_discount_pct: 0.10, active: true },
+  // --- BOLIVIA ---
+  // Zonas CON DESCUENTO GENERAL 10%
+  { id: 101, zone_id: 'LA_PAZ_BO', pais: 'BO', provincia: 'La Paz', ciudad: 'La Paz (Bolivia)', general_discount_pct: 0.10, active: true },
 ];
 
 export const POSTAL_CODES: PostalCode[] = [
-  // Argentina
+  // Argentina - Some examples remain for CP-based lookup
   { id: 1, pais: 'AR', cp_from: '1000', cp_to: '1499', zone_id: 'CABA' },
-  { id: 2, pais: 'AR', cp_from: '1800', cp_to: '1999', zone_id: 'ZONA_SUR' },
-  { id: 3, pais: 'AR', cp_from: '1500', cp_to: '1799', zone_id: 'ZONA_NORTE_Y_OESTE' },
-  { id: 4, pais: 'AR', cp_from: '1900', cp_to: '1999', zone_id: 'LA_PLATA' },
-  { id: 5, pais: 'AR', cp_from: '7600', cp_to: '7699', zone_id: 'MAR_DEL_PLATA' },
-  { id: 25, pais: 'AR', cp_from: '5000', cp_to: '5099', zone_id: 'CORDOBA_CAPITAL' },
+  { id: 2, pais: 'AR', cp_from: '1800', cp_to: '1999', zone_id: 'BUENOS_AIRES_ZONA_SUR' },
+  { id: 3, pais: 'AR', cp_from: '1900', cp_to: '1999', zone_id: 'LA_PLATA' },
+  { id: 4, pais: 'AR', cp_from: '7600', cp_to: '7699', zone_id: 'MAR_DEL_PLATA' },
+  { id: 5, pais: 'AR', cp_from: '5000', cp_to: '5099', zone_id: 'CORDOBA' },
   
-  // Bolivia (CPs son menos estandarizados, usando rangos de ejemplo)
-  { id: 101, pais: 'BO', cp_from: '2000', cp_to: '2999', zone_id: 'LA_PAZ' },
-  { id: 102, pais: 'BO', cp_from: '3000', cp_to: '3999', zone_id: 'SANTA_CRUZ' },
+  // Bolivia (CPs are less standardized, so location is primarily by city/province)
+  { id: 101, pais: 'BO', cp_from: '2000', cp_to: '2999', zone_id: 'LA_PAZ_BO' },
 ];
 
 export const SERVICIOS: Service[] = [
