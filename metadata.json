@@ -1,0 +1,5 @@
+{
+  "name": "Tutto Cotizador",
+  "description": "An internal web application for generating fast cleaning service quotes based on zone indices and service rules. This MVP provides price ranges without booking or payment functionalities.",
+  "requestFramePermissions": []
+}
