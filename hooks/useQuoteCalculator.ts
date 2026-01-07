@@ -1,5 +1,6 @@
+
 import { useState, useCallback, useMemo } from 'react';
-import { QuoteInput, QuoteResult, Service, Zone, PostalCode } from '../types';
+import { QuoteInput, QuoteResult, Service, Zone, PostalCode, DiscountRule } from '../types';
 import { calculateQuote, CalculateQuoteResult } from '../services/pricingEngine';
 
 const initialInput: QuoteInput = {
@@ -15,9 +16,10 @@ interface UseQuoteCalculatorProps {
     services: Service[];
     zones: Zone[];
     postalCodes: PostalCode[];
+    discounts: DiscountRule[];
 }
 
-export const useQuoteCalculator = ({ services, zones, postalCodes }: UseQuoteCalculatorProps) => {
+export const useQuoteCalculator = ({ services, zones, postalCodes, discounts }: UseQuoteCalculatorProps) => {
   const [input, setInput] = useState<QuoteInput>(initialInput);
   const [result, setResult] = useState<QuoteResult | null>(null);
   const [isCalculated, setIsCalculated] = useState(false);
@@ -38,14 +40,12 @@ export const useQuoteCalculator = ({ services, zones, postalCodes }: UseQuoteCal
         return;
     }
     
-    // **Location is only required for Argentina**
-    if (input.pais === 'AR') {
-        const hasLocation = input.cp.trim() !== '' || (input.provincia.trim() !== '' && input.ciudad.trim() !== '');
-        if (!hasLocation) {
-            setError("Para Argentina, por favor complete el código postal o seleccione provincia y ciudad.");
-            setResult(null);
-            return;
-        }
+    // Check if zone is selected
+    const hasLocation = input.provincia.trim() !== '' && input.ciudad.trim() !== '';
+    if (!hasLocation) {
+        setError("Por favor seleccione una Provincia y una Zona/Localidad.");
+        setResult(null);
+        return;
     }
 
     if (input.items.length === 0) {
@@ -54,12 +54,12 @@ export const useQuoteCalculator = ({ services, zones, postalCodes }: UseQuoteCal
         return;
     }
 
-    const quoteResult: CalculateQuoteResult | null = calculateQuote(input, services, zones, postalCodes);
+    const quoteResult: CalculateQuoteResult | null = calculateQuote(input, services, zones, postalCodes, discounts);
     
     if (quoteResult === null || typeof quoteResult === 'string') {
         let errorMessage = 'Ocurrió un error inesperado al calcular la cotización.';
         if (quoteResult === 'ZONE_NOT_FOUND') {
-            const locationIdentifier = input.cp || `${input.provincia}, ${input.ciudad}`;
+            const locationIdentifier = `${input.provincia}, ${input.ciudad}`;
             errorMessage = `La zona especificada ("${locationIdentifier}") no fue encontrada para el país seleccionado.`;
         } else if (quoteResult === 'ZONE_INACTIVE') {
             errorMessage = `La zona especificada no se encuentra activa para cotizaciones en este momento.`;
@@ -72,7 +72,7 @@ export const useQuoteCalculator = ({ services, zones, postalCodes }: UseQuoteCal
         setResult(quoteResult);
         setError(null);
     }
-  }, [input, services, zones, postalCodes]);
+  }, [input, services, zones, postalCodes, discounts]);
 
   const reset = useCallback(() => {
     // Resets to initial state but keeps the selected country

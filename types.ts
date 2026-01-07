@@ -1,3 +1,4 @@
+
 export type Pais = 'AR' | 'BO';
 export type Moneda = 'ARS' | 'Bs';
 
@@ -91,7 +92,6 @@ export interface QuoteResultDetail {
   workloadSubtotal: number;
   appliedDiscount: AppliedDiscount | null;
   priceAfterDiscount: number;
-  minimumChargeApplied: number; // Amount added to meet minimum
   finalPrice: number;
   zoneId: string;
   moneda: Moneda;
@@ -105,4 +105,14 @@ export interface QuoteResult {
   detail: QuoteResultDetail;
   notes: string[];
   summary: string;
+}
+
+export interface DiscountRule {
+    id: number;
+    pais: Pais | string; // Allows 'ALL'
+    category: string; // Matches ServiceCategory string (case insensitive)
+    min_qty: number;
+    discount_pct: number;
+    active: boolean;
+    description?: string;
 }

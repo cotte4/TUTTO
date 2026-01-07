@@ -1,42 +1,27 @@
-import { QuoteInput, QuoteResult, Service, Zone, PostalCode, ServiceUnit, ServiceCategory, AppliedDiscount, QuoteItemResult, Pais } from '../types';
 
-const roundToNearest = (num: number, nearest: number) => Math.round(num / nearest) * nearest;
-
-// FIX: Add 'as const' to ensure TypeScript infers literal types (e.g., 'ARS' instead of string)
-// This resolves the type error when assigning config.moneda to a property expecting type Moneda.
-const COUNTRY_CONFIG = {
-    AR: {
-        moneda: 'ARS',
-        rounding: 100,
-        minimum_charge: 27999,
-        alfombra_threshold: 50000,
-        promo_colchon_base_pct: 0.15,
-    },
-    BO: {
-        moneda: 'Bs',
-        rounding: 1,
-        minimum_charge: 125,
-        alfombra_threshold: 260,
-        promo_colchon_base_pct: 0.10,
-    }
-} as const;
+import { QuoteInput, QuoteResult, Service, Zone, PostalCode, ServiceUnit, ServiceCategory, AppliedDiscount, QuoteItemResult, DiscountRule } from '../types';
 
 export type CalculateQuoteResult = QuoteResult | 'ZONE_NOT_FOUND' | 'ZONE_INACTIVE' | 'SERVICE_NOT_FOUND';
+
+// Helper to normalize strings for comparison (removes accents, lowercase)
+const normalize = (str: string) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
 export const calculateQuote = (
   input: QuoteInput,
   allServices: Service[],
   allZones: Zone[],
-  allPostalCodes: PostalCode[]
+  allPostalCodes: PostalCode[],
+  discountRules: DiscountRule[]
 ): CalculateQuoteResult | null => {
   if (input.items.length === 0) return null;
 
-  const config = COUNTRY_CONFIG[input.pais];
+  const moneda = input.pais === 'AR' ? 'ARS' : 'Bs';
+  
   const services = allServices.filter(s => s.pais === input.pais);
   const zones = allZones.filter(z => z.pais === input.pais);
   const postalCodes = allPostalCodes.filter(pc => pc.pais === input.pais);
 
-  // 1. Find Zone Information
+  // 2. Find Zone Information
   let baseZone: Zone | undefined;
   if (input.cp) {
     const inputCpNum = parseInt(input.cp, 10);
@@ -55,7 +40,7 @@ export const calculateQuote = (
     );
   }
 
-  // Handle case for Bolivia with no location provided by creating a default zone
+  // Handle case for Bolivia with no location provided
   if (!baseZone && input.pais === 'BO') {
       baseZone = {
           id: 0,
@@ -71,7 +56,7 @@ export const calculateQuote = (
   if (!baseZone) return 'ZONE_NOT_FOUND';
   if (!baseZone.active) return 'ZONE_INACTIVE';
 
-  // 2. Calculate initial base price for each item
+  // 3. Calculate initial base price for each item
   let itemsResult: QuoteItemResult[] = [];
   let workloadSubtotal = 0;
 
@@ -81,6 +66,7 @@ export const calculateQuote = (
 
       let basePrice = 0;
       if (service.unidad === ServiceUnit.M2) {
+        // We still respect individual service minimums if defined in the Services sheet (e.g. for carpets)
         basePrice = Math.max(service.min_cargo || 0, (service.tasa_m2 || 0) * item.quantity);
       } else {
         basePrice = service.precio_base * item.quantity;
@@ -88,7 +74,7 @@ export const calculateQuote = (
       itemsResult.push({ service, quantity: item.quantity, basePrice });
   }
 
-  // 3. Apply Special Calculation Rules
+  // 4. Apply Special Calculation Rules (Item Bundling)
   // Rule: Ítems Aislados de Vehículos
   const isolatedItems = itemsResult.filter(ir => ir.service.categoria === ServiceCategory.VEHICULOS_AISLADOS);
   if (isolatedItems.length >= 2) {
@@ -115,54 +101,57 @@ export const calculateQuote = (
 
   workloadSubtotal = itemsResult.reduce((sum, item) => sum + item.basePrice, 0);
 
-  // 4. Apply Promotions & Discounts
+  // 5. Apply Promotions & Discounts
   let priceAfterDiscount = workloadSubtotal;
   let appliedDiscount: AppliedDiscount | null = null;
   let promoApplied = false;
 
-  const hasPromoService = (serviceId: string) => input.items.some(i => i.serviceId.includes(serviceId));
-  const countItemsByCategory = (category: ServiceCategory) => itemsResult.filter(ir => ir.service.categoria === category).length;
-  const subtotalByCategory = (category: ServiceCategory) => itemsResult
-      .filter(ir => ir.service.categoria === category)
-      .reduce((sum, item) => sum + item.basePrice, 0);
-
-  // --- Check Promotions (only apply one) ---
+  // --- 5.1 Dynamic Category Rules (From Google Sheet 'Discounts' Tab) ---
   if (input.paymentMethod === 'cash_transfer') {
-      // Bebé Promo
-      if (hasPromoService('bebe_promo') && countItemsByCategory(ServiceCategory.BEBE) > 2) { // 2 items + promo item = 3
-          const babySubtotal = subtotalByCategory(ServiceCategory.BEBE);
-          const discountAmount = babySubtotal * 0.20;
-          priceAfterDiscount = workloadSubtotal - discountAmount;
-          appliedDiscount = { type: 'PROMO', description: '20% OFF en 2+ artículos de bebé', amount: discountAmount, pct: 0.20 };
-          promoApplied = true;
-      }
-      // Colchón + Base Promo
-      else if (hasPromoService('colchon_base') && itemsResult.some(ir => ir.service.categoria === ServiceCategory.COLCHONES && ir.service.servicio_id !== 'colchon_base_ar' && ir.service.servicio_id !== 'colchon_base_bo')) {
-          const discountAmount = workloadSubtotal * config.promo_colchon_base_pct;
-          priceAfterDiscount = workloadSubtotal - discountAmount;
-          appliedDiscount = { type: 'PROMO', description: `${config.promo_colchon_base_pct*100}% OFF Colchón + Base`, amount: discountAmount, pct: config.promo_colchon_base_pct };
-          promoApplied = true;
-      }
-      // Sillones Promo
-      else if (hasPromoService('promo_juego_sillones')) {
-          const discountAmount = workloadSubtotal * 0.15; // Assuming 15% for AR
-          priceAfterDiscount = workloadSubtotal - discountAmount;
-          appliedDiscount = { type: 'PROMO', description: '15% OFF en Juego de Sillones', amount: discountAmount, pct: 0.15 };
-          promoApplied = true;
+      // Filter active rules for this country OR Global ('ALL')
+      const activeRules = discountRules.filter(r => 
+        (r.pais === input.pais || r.pais === 'ALL') && r.active
+      );
+
+      // Sort by highest discount first to give the best applicable deal
+      activeRules.sort((a, b) => b.discount_pct - a.discount_pct);
+      
+      for (const rule of activeRules) {
+          const categoryName = rule.category;
+          let itemsInCat: QuoteItemResult[] = [];
+
+          if (normalize(categoryName) === 'general') {
+             // General applies to all items except specific exclusions (Estetica usually excluded from general promos)
+             itemsInCat = itemsResult.filter(ir => ir.service.categoria !== ServiceCategory.ESTETICA_VEHICULAR);
+          } else {
+             itemsInCat = itemsResult.filter(ir => 
+                 normalize(ir.service.categoria) === normalize(categoryName)
+             );
+          }
+          
+          // Count total QUANTITY (e.g. 6 chairs), not just line items
+          const count = itemsInCat.reduce((sum, item) => sum + item.quantity, 0);
+
+          if (count >= rule.min_qty) {
+              const catSubtotal = itemsInCat.reduce((sum, item) => sum + item.basePrice, 0);
+              const discountAmount = catSubtotal * rule.discount_pct;
+              
+              priceAfterDiscount = workloadSubtotal - discountAmount;
+              appliedDiscount = { 
+                  type: 'PROMO', 
+                  description: rule.description || `${rule.discount_pct * 100}% OFF en ${categoryName}`, 
+                  amount: discountAmount, 
+                  pct: rule.discount_pct 
+              };
+              promoApplied = true;
+              break; // Apply the first matching rule (highest priority)
+          }
       }
   }
 
-  // --- Check Value-based Rules (if no promo) ---
-  if (!promoApplied) {
-      const alfombraSubtotal = subtotalByCategory(ServiceCategory.ALFOMBRAS);
-      if (alfombraSubtotal > config.alfombra_threshold) {
-          const discountAmount = alfombraSubtotal * 0.08;
-          priceAfterDiscount = workloadSubtotal - discountAmount;
-          appliedDiscount = { type: 'VALUE', description: `8% OFF por superar ${config.moneda} ${config.alfombra_threshold} en alfombras`, amount: discountAmount, pct: 0.08 };
-      }
-  }
-
-  // --- Check Zone Discounts (if no promo/value rule) ---
+  // --- 5.2 Check Zone Discounts (if no promo applied) ---
+  // Note: All hardcoded value-based rules (like carpets > 50k) have been removed.
+  // Zone discounts are now the only fallback.
   if (!appliedDiscount) {
     const eligibleItems = itemsResult.filter(item => item.service.categoria !== ServiceCategory.ESTETICA_VEHICULAR);
     const eligibleSubtotal = eligibleItems.reduce((sum, item) => sum + item.basePrice, 0);
@@ -172,39 +161,31 @@ export const calculateQuote = (
         const discountAmount = eligibleSubtotal * baseZone.general_discount_pct;
         priceAfterDiscount = (eligibleSubtotal - discountAmount) + nonEligibleSubtotal;
         appliedDiscount = { type: 'ZONE_GENERAL', description: `${baseZone.general_discount_pct * 100}% Descuento General Zona`, amount: discountAmount, pct: baseZone.general_discount_pct };
-    } else if (eligibleItems.length >= 2 && input.paymentMethod === 'cash_transfer') {
-        const discountAmount = eligibleSubtotal * 0.08;
-        priceAfterDiscount = (eligibleSubtotal - discountAmount) + nonEligibleSubtotal;
-        appliedDiscount = { type: 'ZONE_CONDITIONAL', description: '8% OFF por 2+ ítems (ctdo/transf)', amount: discountAmount, pct: 0.08 };
-    }
+    } 
+    // Legacy hardcoded '2+ items zone discount' removed. 
+    // Use 'GENERAL' rule in Google Sheets to replace it if needed.
   }
 
-  // 5. Check Minimum Charge
-  let finalPrice = priceAfterDiscount;
-  let minimumChargeApplied = 0;
-  if (finalPrice < config.minimum_charge) {
-    minimumChargeApplied = config.minimum_charge - finalPrice;
-    finalPrice = config.minimum_charge;
-  }
-  
-  // 6. Calculate Range
-  const min = roundToNearest(finalPrice * 0.95, config.rounding);
-  const max = roundToNearest(finalPrice * 1.10, config.rounding);
+  // 6. Final Price
+  const finalPrice = priceAfterDiscount;
+
+  // We keep min/max in the interface to avoid type breaking, but they are now just the final price.
+  const min = finalPrice;
+  const max = finalPrice;
 
   // 7. Generate Summary and Details
   const serviceList = itemsResult.map(i => i.service.subservicio).join(', ');
   const locationForSummary = baseZone.ciudad === 'General' ? 'Bolivia' : baseZone.ciudad;
-  const summary = `Estimado orientativo para ${serviceList} en ${locationForSummary}: ${config.moneda} ${min}–${max}. El valor final se confirma in situ.`;
   
-  const notes = [
-      'Método: inyección–cepillado–extracción.',
-      'Tiempo de secado estimado: 4–5 horas.',
-      'Manchas y olores pre-existentes pueden no eliminarse al 100%.',
-      'El valor final se confirma en la visita presencial.',
-  ];
-  if(minimumChargeApplied > 0) notes.push(`Se aplicó un monto mínimo de ${config.moneda} ${config.minimum_charge}.`);
-  if(appliedDiscount?.type.startsWith('ZONE')) notes.push('Descuentos de zona no aplican a Estética Vehicular.');
+  // Helper for currency formatting
+  const formatter = new Intl.NumberFormat(input.pais === 'AR' ? 'es-AR' : 'es-BO', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+  });
 
+  const summary = `Cotización para ${serviceList} en ${locationForSummary}: ${moneda} ${formatter.format(finalPrice)}. Valor final sujeto a confirmación in situ.`;
+  
+  const notes: string[] = [];
 
   return {
     min,
@@ -213,10 +194,9 @@ export const calculateQuote = (
       workloadSubtotal,
       appliedDiscount,
       priceAfterDiscount,
-      minimumChargeApplied,
       finalPrice,
       zoneId: baseZone.zone_id,
-      moneda: config.moneda,
+      moneda: moneda,
       operaryName: baseZone.operary_name,
       items: itemsResult,
     },
