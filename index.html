@@ -12,12 +12,88 @@
         theme: {
           extend: {
             colors: {
-              'brand-primary': '#1E3A8A', // Deep Blue
-              'brand-secondary': '#3B82F6', // Brighter Blue
-              'brand-accent': '#FBBF24', // Amber/Yellow
-              'brand-light': '#F9FAFB', // Light Gray
-              'brand-dark': '#111827', // Dark Gray
+              // Modern Brand Colors - Deep Blue & Vibrant Accents
+              'brand-primary': '#0F172A', // Slate 900 - Premium dark
+              'brand-secondary': '#3B82F6', // Blue 500 - Professional blue
+              'brand-accent': '#F59E0B', // Amber 500 - Warm accent
+              'brand-light': '#F8FAFC', // Slate 50 - Subtle background
+              'brand-dark': '#0F172A', // Slate 900 - Rich dark
+
+              // Gradient Colors
+              'gradient-start': '#3B82F6', // Blue 500
+              'gradient-mid': '#2563EB', // Blue 600
+              'gradient-end': '#1E40AF', // Blue 700
+              'gradient-accent-start': '#F59E0B', // Amber 500
+              'gradient-accent-end': '#D97706', // Amber 600
+
+              // Success Colors
+              'success-light': '#D1FAE5', // Emerald 100
+              'success': '#10B981', // Emerald 500
+              'success-dark': '#059669', // Emerald 600
+
+              // Error Colors
+              'error-light': '#FEE2E2', // Red 100
+              'error': '#EF4444', // Red 500
+              'error-dark': '#DC2626', // Red 600
+
+              // Warning Colors
+              'warning-light': '#FEF3C7', // Amber 100
+              'warning': '#F59E0B', // Amber 500
+              'warning-dark': '#D97706', // Amber 600
+
+              // Info Colors
+              'info-light': '#DBEAFE', // Blue 100
+              'info': '#3B82F6', // Blue 500
+              'info-dark': '#2563EB', // Blue 600
             },
+            backgroundImage: {
+              'gradient-primary': 'linear-gradient(135deg, #3B82F6 0%, #2563EB 50%, #1E40AF 100%)',
+              'gradient-accent': 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+              'gradient-subtle': 'linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 100%)',
+              'gradient-dark': 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
+              'mesh-pattern': 'radial-gradient(at 40% 20%, rgba(59, 130, 246, 0.1) 0px, transparent 50%), radial-gradient(at 80% 0%, rgba(245, 158, 11, 0.1) 0px, transparent 50%), radial-gradient(at 0% 50%, rgba(59, 130, 246, 0.05) 0px, transparent 50%)',
+            },
+            boxShadow: {
+              'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
+              'medium': '0 4px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 30px -5px rgba(0, 0, 0, 0.04)',
+              'strong': '0 10px 40px -10px rgba(0, 0, 0, 0.15), 0 20px 50px -10px rgba(0, 0, 0, 0.1)',
+              'glow': '0 0 20px rgba(59, 130, 246, 0.3), 0 0 40px rgba(59, 130, 246, 0.1)',
+              'glow-accent': '0 0 20px rgba(245, 158, 11, 0.3), 0 0 40px rgba(245, 158, 11, 0.1)',
+            },
+            keyframes: {
+              'fade-in': {
+                '0%': { opacity: '0', transform: 'translateY(-10px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' }
+              },
+              'slide-in': {
+                '0%': { opacity: '0', transform: 'translateX(-10px)' },
+                '100%': { opacity: '1', transform: 'translateX(0)' }
+              },
+              'slide-down': {
+                '0%': { opacity: '0', transform: 'translateY(-10px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' }
+              },
+              'bounce-subtle': {
+                '0%, 100%': { transform: 'translateY(0)' },
+                '50%': { transform: 'translateY(-4px)' }
+              },
+              'shimmer': {
+                '0%': { backgroundPosition: '-200% 0' },
+                '100%': { backgroundPosition: '200% 0' }
+              },
+              'pulse-soft': {
+                '0%, 100%': { opacity: '1' },
+                '50%': { opacity: '0.8' }
+              }
+            },
+            animation: {
+              'fade-in': 'fade-in 0.3s ease-out',
+              'slide-in': 'slide-in 0.3s ease-out',
+              'slide-down': 'slide-down 0.3s ease-out',
+              'bounce-subtle': 'bounce-subtle 0.6s ease-in-out',
+              'shimmer': 'shimmer 2s linear infinite',
+              'pulse-soft': 'pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+            }
           },
         },
       }
@@ -32,7 +108,7 @@
 }
 </script>
 </head>
-  <body class="bg-brand-light">
+  <body class="bg-gradient-subtle">
     <div id="root"></div>
   </body>
 </html>
